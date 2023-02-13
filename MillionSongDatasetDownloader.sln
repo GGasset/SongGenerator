@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33318.248
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MillionSongDatasetDownloader", "MillionSongDatasetDownloader.csproj", "{30510246-312D-439F-9D8A-1D91A05E21CF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{30510246-312D-439F-9D8A-1D91A05E21CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30510246-312D-439F-9D8A-1D91A05E21CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30510246-312D-439F-9D8A-1D91A05E21CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30510246-312D-439F-9D8A-1D91A05E21CF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {986B5F26-5EE4-4273-8120-188F1D0FA9A3}
+	EndGlobalSection
+EndGlobal
