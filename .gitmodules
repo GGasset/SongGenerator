@@ -1,0 +1,3 @@
+[submodule "songnames"]
+	path = songnames
+	url = https://github.com/mahkaila/songnames.git
