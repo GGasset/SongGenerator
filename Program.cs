@@ -17,7 +17,12 @@ namespace MillionSongDatasetDownloader
     {
         static readonly int ArtistNameCol = 8, SongNamesCol = 16;
 
-        static async void Main(string[] args)
+        static void Main(string[] args)
+        {
+            DownloadConvert();
+        }
+
+        static async void DownloadConvert()
         {
             string workingDirectory = Environment.CurrentDirectory;
             string projectDirectory = Directory.GetParent(workingDirectory).Parent.FullName;
