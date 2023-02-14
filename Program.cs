@@ -23,7 +23,14 @@ namespace MillionSongDatasetDownloader
             string projectDirectory = Directory.GetParent(workingDirectory).Parent.FullName;
             if (!projectDirectory.EndsWith(@"\"))
                 projectDirectory += @"\";
+
             string ffmpegPath = projectDirectory + "ffmpeg.exe";
+            if (!File.Exists(ffmpegPath))
+            {
+                Console.WriteLine("Please uzip ffmpeg.zip so the program will execute.");
+                return;
+            }
+
             string songsCsvPath = projectDirectory += "SongCSV.csv";
             StreamReader reader = new StreamReader(songsCsvPath);
             IEnumerable<ICsvLine> csv = CsvReader.Read(reader);
