@@ -64,6 +64,9 @@ namespace MillionSongDatasetDownloader
                 converter.FromTime = new TimeSpan(0, 0, 0);
                 converter.LengthTime = new TimeSpan(0, 0, 0);
                 converter.Run();
+
+                if (i % 10 == 0)
+                    Console.Out.WriteLineAsync($"{i}/{artistNames.Count}");
             }
         }
 
