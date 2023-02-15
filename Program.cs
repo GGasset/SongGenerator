@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Globalization;
 using System.Threading.Tasks;
 using System.IO;
-using Csv;
+using CsvHelper;
+using CsvHelper.Configuration;
 using YoutubeExplode;
 using YoutubeExplode.Videos.Streams;
 using YoutubeExplode.Search;
@@ -32,25 +34,46 @@ namespace MillionSongDatasetDownloader
             string ffmpegPath = projectDirectory + "ffmpeg.exe";
             if (!File.Exists(ffmpegPath))
             {
-                Console.WriteLine("Please uzip ffmpeg.zip so the program will execute.");
+                await Console.Out.WriteLineAsync("Please uzip ffmpeg.zip so the program will execute.");
                 return;
             }
 
             string songsCsvPath = projectDirectory += "SongCSV.csv";
             StreamReader reader = new StreamReader(songsCsvPath);
-            IEnumerable<ICsvLine> csv = CsvReader.Read(reader);
-
-            List<string> artistNames = new List<string>(CsvReader.GetColumn(csv, ArtistNameCol));
-            List<string> songsNames = new List<string>(CsvReader.GetColumn(csv, SongNamesCol));
+            CsvConfiguration configuration = new CsvConfiguration(CultureInfo.InvariantCulture);
+            CsvParser parser = new CsvParser(reader, configuration, true);
+            parser.Read();
 
             VideoConverter converter = new VideoConverter();
             converter.FFmpegLibsPath = ffmpegPath;
             YoutubeClient youtube = new YoutubeClient();
-            for (int i = 0; i < artistNames.Count(); i++)
+            while (parser.Read())
             {
-                string songArtist = $"{songsNames[i]} - {artistNames[i]}";
-                var videos = new List<VideoSearchResult>(await youtube.Search.GetVideosAsync(songArtist));
-                string url = videos[0].Url;
+                string songName = parser[SongNamesCol];
+                string artistName = parser[ArtistNameCol];
+                string songArtist = $"{songName} - {artistName}".Replace("b'", "").Replace("'", "");
+                IReadOnlyList<ISearchResult> videos;
+                try
+                {
+                    videos = await youtube.Search.GetResultsAsync(songArtist);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    return;
+                }
+                string url = null;
+                for (int i = 0; url == null; i++)
+                {
+                    switch (videos[i])
+                    {
+                        case VideoSearchResult video:
+                            url = video.Url;
+                            break;
+                        default:
+                            break;
+                    }
+                }
                 var streamManifest = await youtube.Videos.Streams.GetManifestAsync(url);
                 var streamInfo = streamManifest.GetAudioStreams().GetWithHighestBitrate();
 
@@ -70,9 +93,11 @@ namespace MillionSongDatasetDownloader
                 converter.LengthTime = new TimeSpan(0, 0, 0);
                 converter.Run();
 
-                if (i % 10 == 0)
-                    Console.Out.WriteLineAsync($"{i}/{artistNames.Count}");
+                if (parser.Row % 10 == 0)
+                    await Console.Out.WriteLineAsync($"{parser.Row}/100000");
             }
+            reader.Close();
+            parser.Dispose();
         }
 
         //static string GetImFeelingLuckyQuery(string searchFor) => $"https://www.google.com/search?q={searchFor}&btnI=Voy+a+tener+suerte".Replace(" ", "+");
