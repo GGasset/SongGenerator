@@ -27,10 +27,10 @@ namespace MillionSongDatasetDownloader
 
         static void Main(string[] args)
         {
-            DownloadConvert();
+            DownloadConvert().Wait();
         }
 
-        static async void DownloadConvert()
+        static async Task DownloadConvert()
         {
             string workingDirectory = Environment.CurrentDirectory;
             string projectDirectory = Directory.GetParent(workingDirectory).Parent.FullName;
@@ -74,30 +74,34 @@ namespace MillionSongDatasetDownloader
 
                 var searchListRequest = youtubeService.Search.List("snippet");
                 searchListRequest.Q = songArtist;
-                searchListRequest.MaxResults = 10;
+                searchListRequest.MaxResults = 3;
 
                 var searchListResponse = searchListRequest.ExecuteAsync();
                 searchListResponse.Wait();
+
+                string url = null;
                 var searchListResult = searchListResponse.Result;
                 foreach (var searchResult in searchListResult.Items)
                 {
                     if (searchResult.Id.Kind == "youtube#video")
                     {
-                        //searchResult.Id.VideoId;
+                        url = "https://www.youtube.com/watch?v=" + searchResult.Id.VideoId;
                         break;
                     }
                 }
 
-                string url = null;
 
-                var streamManifest = await youtube.Videos.Streams.GetManifestAsync(url);
+                var streamManifestRequest = youtube.Videos.Streams.GetManifestAsync(url);
+                await streamManifestRequest;
+                var streamManifest = streamManifestRequest.Result;
                 var streamInfo = streamManifest.GetAudioStreams().GetWithHighestBitrate();
 
-                string path = $@"Songs\{songArtist}.{streamInfo.Container}";
+                string path = projectDirectory += $@"Songs\{songArtist}.{streamInfo.Container}";
                 await youtube.Videos.Streams.DownloadAsync(streamInfo, path);
 
+                converter.FileSource = path;
+
                 string convertedPath = projectDirectory + $@"Converted\{songArtist}";
-                converter.FileSource = projectDirectory + path;
                 converter.FileDestination = convertedPath;
 
                 converter.AudioCodec = "WAV";
