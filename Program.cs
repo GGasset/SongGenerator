@@ -89,6 +89,7 @@ namespace MillionSongDatasetDownloader
                         break;
                     }
                 }
+                await Console.Out.WriteLineAsync("Found video");
 
 
                 var streamManifestRequest = youtube.Videos.Streams.GetManifestAsync(url);
@@ -98,6 +99,7 @@ namespace MillionSongDatasetDownloader
 
                 string path = projectDirectory += $@"Songs\{songArtist}.{streamInfo.Container}";
                 await youtube.Videos.Streams.DownloadAsync(streamInfo, path);
+                await Console.Out.WriteLineAsync("Downloaded video");
 
                 converter.FileSource = path;
 
@@ -112,9 +114,9 @@ namespace MillionSongDatasetDownloader
                 converter.FromTime = new TimeSpan(0, 0, 0);
                 converter.LengthTime = new TimeSpan(0, 0, 0);
                 converter.Run();
+                Console.WriteLine("Parsed video");
 
-                if (parser.Row % 10 == 0)
-                    await Console.Out.WriteLineAsync($"{parser.Row}/100000");
+                await Console.Out.WriteLineAsync($"{parser.Row}/100000");
             }
             reader.Close();
             parser.Dispose();
