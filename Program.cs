@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 using System.IO;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
+using Google.Apis.Upload;
+using Google.Apis.Util.Store;
+using Google.Apis.YouTube.v3;
+using Google.Apis.YouTube.v3.Data;
 using YoutubeExplode;
 using YoutubeExplode.Videos.Streams;
 using YoutubeExplode.Search;
@@ -34,46 +40,56 @@ namespace MillionSongDatasetDownloader
             string ffmpegPath = projectDirectory + "ffmpeg.exe";
             if (!File.Exists(ffmpegPath))
             {
-                await Console.Out.WriteLineAsync("Please uzip ffmpeg.zip so the program will execute.");
+                await Console.Out.WriteLineAsync("Please unzip ffmpeg.zip so the program will execute.");
                 return;
             }
 
-            string songsCsvPath = projectDirectory += "SongCSV.csv";
+            string songsCsvPath = projectDirectory + "SongCSV.csv";
             StreamReader reader = new StreamReader(songsCsvPath);
             CsvConfiguration configuration = new CsvConfiguration(CultureInfo.InvariantCulture);
             CsvParser parser = new CsvParser(reader, configuration, true);
             parser.Read();
 
+            string googleKeyFilePath = projectDirectory + "GoogleApiKey.txt";
+            if (!File.Exists(googleKeyFilePath))
+            {
+                await Console.Out.WriteLineAsync("You must include an API key in a file called GoogleApiKey.txt with the key I must provide (Contact: gassetgerman@gmail.com)");
+            }
+            string googleApiKey = File.ReadAllText(googleKeyFilePath);
+            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            {
+                ApiKey = googleApiKey,
+                ApplicationName = "SongGenerator"
+            });
+
+            YoutubeClient youtube = new YoutubeClient();
+
             VideoConverter converter = new VideoConverter();
             converter.FFmpegLibsPath = ffmpegPath;
-            YoutubeClient youtube = new YoutubeClient();
             while (parser.Read())
             {
                 string songName = parser[SongNamesCol];
                 string artistName = parser[ArtistNameCol];
                 string songArtist = $"{songName} - {artistName}".Replace("b'", "").Replace("'", "");
-                IReadOnlyList<ISearchResult> videos;
-                try
+
+                var searchListRequest = youtubeService.Search.List("snippet");
+                searchListRequest.Q = songArtist;
+                searchListRequest.MaxResults = 10;
+
+                var searchListResponse = searchListRequest.ExecuteAsync();
+                searchListResponse.Wait();
+                var searchListResult = searchListResponse.Result;
+                foreach (var searchResult in searchListResult.Items)
                 {
-                    videos = await youtube.Search.GetResultsAsync(songArtist);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    return;
-                }
-                string url = null;
-                for (int i = 0; url == null; i++)
-                {
-                    switch (videos[i])
+                    if (searchResult.Id.Kind == "youtube#video")
                     {
-                        case VideoSearchResult video:
-                            url = video.Url;
-                            break;
-                        default:
-                            break;
+                        //searchResult.Id.VideoId;
+                        break;
                     }
                 }
+
+                string url = null;
+
                 var streamManifest = await youtube.Videos.Streams.GetManifestAsync(url);
                 var streamInfo = streamManifest.GetAudioStreams().GetWithHighestBitrate();
 
