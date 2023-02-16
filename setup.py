@@ -4,7 +4,7 @@ import pandas as pd
 import sys
 
 def main():
-    if sys.argv.count() < 2:
+    if len(sys.argv) < 2:
         print('Usage: python setup.py songs_csv_input_path songs_csv_output_path')
         sleep(1)
         quit(1)
@@ -21,8 +21,13 @@ def main():
         sleep(1)
         quit(1)
 
-    songs_csv = pd.read_csv(songs_csv_from_path)
-    songs_csv.to_csv(songs_csv_to_path)
+    try:
+        songs_csv = pd.read_csv(songs_csv_from_path)
+        songs_csv.to_csv(songs_csv_to_path)
+    except Exception:
+        print('Error while moving data.')
+        sleep(1)
+        exit(1)
 
 if __name__ == '__main__':
     main()
