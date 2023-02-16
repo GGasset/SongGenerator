@@ -6,6 +6,7 @@
 Songs/*
 Converted/*
 *.exe
+*.csv
 
 # User-specific files
 *.rsuser
