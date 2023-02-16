@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Globalization;
 using System.Threading.Tasks;
+using System.Diagnostics;
 using System.IO;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -18,6 +19,7 @@ using YoutubeExplode.Videos.Streams;
 using YoutubeExplode.Search;
 using YoutubeExplode.Common;
 using CSVideoConverter;
+using System.Threading;
 
 namespace MillionSongDatasetDownloader
 {
@@ -45,7 +47,14 @@ namespace MillionSongDatasetDownloader
                 return;
             }
 
+            string originalSongsCsvPath = projectDirectory + $@"songnames\Song.csv";
             string songsCsvPath = projectDirectory + "SongCSV.csv";
+            string pythonSetupFilePath = projectDirectory + "setup.py";
+            string command = $"python {pythonSetupFilePath} {originalSongsCsvPath} {songsCsvPath}";
+            Process.Start("cmd.exe", command);
+            while (!File.Exists(songsCsvPath))
+                Thread.Sleep(500);
+
             StreamReader reader = new StreamReader(songsCsvPath);
             CsvConfiguration configuration = new CsvConfiguration(CultureInfo.InvariantCulture);
             CsvParser parser = new CsvParser(reader, configuration, true);
@@ -103,7 +112,8 @@ namespace MillionSongDatasetDownloader
                 await Console.Out.WriteLineAsync("Downloaded video");
 
                 string convertedPath = projectDirectory + $@"Converted\{songArtist}.wav";
-                string command = $@"{ffmpegPath} -i {downloadedPath} {convertedPath}";
+                command = $@"{ffmpegPath} -i {downloadedPath} {convertedPath}";
+                Process.Start("cmd.exe", command);
 
                 /*converter.FileSource = path;
 
