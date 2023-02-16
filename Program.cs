@@ -27,7 +27,8 @@ namespace MillionSongDatasetDownloader
 
         static void Main(string[] args)
         {
-            DownloadConvert().Wait();
+            Task mainTask = DownloadConvert();
+            mainTask.Wait();
         }
 
         static async Task DownloadConvert()
@@ -64,8 +65,8 @@ namespace MillionSongDatasetDownloader
 
             YoutubeClient youtube = new YoutubeClient();
 
-            VideoConverter converter = new VideoConverter();
-            converter.FFmpegLibsPath = ffmpegPath;
+            //VideoConverter converter = new VideoConverter("germa", "2122", projectDirectory);
+            //converter.FFmpegLibsPath = ffmpegPath;
             while (parser.Read())
             {
                 string songName = parser[SongNamesCol];
@@ -97,13 +98,15 @@ namespace MillionSongDatasetDownloader
                 var streamManifest = streamManifestRequest.Result;
                 var streamInfo = streamManifest.GetAudioStreams().GetWithHighestBitrate();
 
-                string path = projectDirectory += $@"Songs\{songArtist}.{streamInfo.Container}";
-                await youtube.Videos.Streams.DownloadAsync(streamInfo, path);
+                string downloadedPath = projectDirectory += $@"Songs\{songArtist}.{streamInfo.Container}";
+                await youtube.Videos.Streams.DownloadAsync(streamInfo, downloadedPath);
                 await Console.Out.WriteLineAsync("Downloaded video");
 
-                converter.FileSource = path;
+                string convertedPath = projectDirectory + $@"Converted\{songArtist}.wav";
+                string command = $@"{ffmpegPath} -i {downloadedPath} {convertedPath}";
 
-                string convertedPath = projectDirectory + $@"Converted\{songArtist}";
+                /*converter.FileSource = path;
+
                 converter.FileDestination = convertedPath;
 
                 converter.AudioCodec = "WAV";
@@ -114,7 +117,7 @@ namespace MillionSongDatasetDownloader
                 converter.FromTime = new TimeSpan(0, 0, 0);
                 converter.LengthTime = new TimeSpan(0, 0, 0);
                 converter.Run();
-                Console.WriteLine("Parsed video");
+                Console.WriteLine("Parsed video");*/
 
                 await Console.Out.WriteLineAsync($"{parser.Row}/100000");
             }
