@@ -64,10 +64,15 @@ def get_input_int(prompt: str) -> int:
         try:
             answer = int(input())
             return answer
-        except :
+        except:
             pass
 
 def get_input_name(action: str = 'load the network') -> str:
+    prompt = f'Enter a file name to {action}.'
+    print(prompt)
+    return remove_illegal_characters(input())
+    
+def remove_illegal_characters(file_name: str) -> str:
     pass
 
 def get_input_date_time(action: str, ask: bool = True) -> datetime | None:
