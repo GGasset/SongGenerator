@@ -54,10 +54,18 @@ def get_boolean_input(prompt: str) -> bool:
     answer = None
     while not answer in accepted_options:
         answer = input().lower()
+
     return answer in positive_options
 
 def get_input_int(prompt: str) -> int:
-    pass
+    while True:
+        print(prompt)
+        print('Accepted options are integers.')
+        try:
+            answer = int(input())
+            return answer
+        except :
+            pass
 
 def get_input_name(action: str = 'load the network') -> str:
     pass
