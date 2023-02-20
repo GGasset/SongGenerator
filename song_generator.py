@@ -47,7 +47,14 @@ def train(model: Sequential, save_name: str) -> None:
         trained_once = True
 
 def get_boolean_input(prompt: str) -> bool:
-    pass
+    accepted_options = ['yes', 'no', 'y', 'n', '1', '0']
+    positive_options = ['yes', 'y', '1']
+    print(prompt)
+    print('Accepted options: ' + accepted_options)
+    answer = None
+    while not answer in accepted_options:
+        answer = input().lower()
+    return answer in positive_options
 
 def get_input_int(prompt: str) -> int:
     pass
