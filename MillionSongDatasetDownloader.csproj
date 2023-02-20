@@ -122,6 +122,9 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="song_generator.py" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="packages\CSVideoConverter.1.0.3\build\CSVideoConverter.targets" Condition="Exists('packages\CSVideoConverter.1.0.3\build\CSVideoConverter.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
