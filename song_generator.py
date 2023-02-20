@@ -73,7 +73,7 @@ def get_input_name(action: str = 'load the network') -> str:
     return remove_illegal_characters(input())
     
 def remove_illegal_characters(file_name: str) -> str:
-    pass
+    return file_name.replace('\\', '').replace('>', '').replace('<', '').replace('con', '').replace('"', '').replace('?', '').replace('|').replace('*', '').replace(' ', '')
 
 def get_input_date_time(action: str, ask: bool = True) -> datetime | None:
     pass
