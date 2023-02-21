@@ -52,7 +52,7 @@ def get_boolean_input(prompt: str) -> bool:
     accepted_options = ['yes', 'no', 'y', 'n', '1', '0']
     positive_options = ['yes', 'y', '1']
     print(prompt)
-    print('Accepted options: ' + accepted_options)
+    print('Accepted options: ' + str(accepted_options))
     answer = None
     while not answer in accepted_options:
         answer = input().lower()
@@ -75,7 +75,7 @@ def get_input_name(action: str = 'load the network') -> str:
     return remove_illegal_characters(input())
     
 def remove_illegal_characters(file_name: str) -> str:
-    return file_name.replace('\\', '').replace('>', '').replace('<', '').replace('con', '').replace('"', '').replace('?', '').replace('|').replace('*', '').replace(' ', '')
+    return file_name.replace('\\', '').replace('>', '').replace('<', '').replace('con', '').replace('"', '').replace('?', '').replace('|', '').replace('*', '').replace(' ', '')
 
 def get_input_date_time(action: str, ask: bool = True) -> datetime | None:
     if not ask:
@@ -85,7 +85,7 @@ def get_input_date_time(action: str, ask: bool = True) -> datetime | None:
     return current_date_time + time_delta
 
 def get_current_date_time() -> datetime:
-    datetime.now()
+     return datetime.now()
 
 def get_input_time_delta(action: str) -> timedelta:
     hours = get_input_int(f'Select how many hours of {action}. (Later there will be a question of how many days)')
@@ -118,7 +118,7 @@ def generate_training_data() -> tuple[Tensor, Tensor]:
     for i, track in enumerate(tracks):
         X.append([])
         Y.append([])
-        print(f'Appending data of track {i} of {len(tracks)} tracks to training data')
+        print(f'Appending data of track {i} of {len(tracks) - 1} tracks to training data')
         for j in range(len(track) - 1):
             X[i].append(track[j])
             Y[i].append(track[j + 1])
@@ -133,8 +133,10 @@ def generate_training_data() -> tuple[Tensor, Tensor]:
 
 def extract_audio_from_directory(path: str) -> list[bytearray]:
     out = []
-    for _, folder, files in os.path.walk(path):
-        for file in [f for f in files if f.__contains__('.wav')]:
+    for _, folder, files in os.walk(path):
+        filtered = [f for f in files if f.__contains__('.wav')]
+        for i, file in enumerate(filtered):
+            print(f'Read {i} out of {len(filtered) - 1}')
             out.append(extract_audio(os.path.join(folder, file)))
 
 # read as binary and transform to decimal
