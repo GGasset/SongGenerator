@@ -71,6 +71,18 @@ namespace MillionSongDatasetDownloader
                 ApplicationName = "SongGenerator"
             });*/
 
+            string googleKeyFilePath = projectDirectory + "GoogleApiKey.txt";
+            if (!File.Exists(googleKeyFilePath))
+            {
+                await Console.Out.WriteLineAsync("You must include an API key in a file called GoogleApiKey.txt with the key I must provide (Contact: gassetgerman@gmail.com)");
+                await Console.Out.WriteLineAsync("Files will download at a slower pace if you don't add the key.");
+            }
+            string googleApiKey = File.ReadAllText(googleKeyFilePath);
+            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            {
+                ApiKey = googleApiKey,
+                ApplicationName = "SongGenerator"
+            });
             YoutubeClient youtube = new YoutubeClient();
 
             //VideoConverter converter = new VideoConverter("germa", "2122", projectDirectory);
@@ -105,8 +117,30 @@ namespace MillionSongDatasetDownloader
                             break;
                         }
                     }*/
-                    var videos = await youtube.Search.GetVideosAsync(songArtist);
-                    url = videos[0].Url;
+                    try
+                    {
+                        var searchListRequest = youtubeService.Search.List("snippet");
+                        searchListRequest.Q = songArtist;
+                        searchListRequest.MaxResults = 3;
+
+                        var searchListResponse = searchListRequest.ExecuteAsync();
+                        searchListResponse.Wait();
+
+                        var searchListResult = searchListResponse.Result;
+                        foreach (var searchResult in searchListResult.Items)
+                        {
+                            if (searchResult.Id.Kind == "youtube#video")
+                            {
+                                url = "https://www.youtube.com/watch?v=" + searchResult.Id.VideoId;
+                                break;
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        var videos = await youtube.Search.GetVideosAsync(songArtist);
+                        url = videos[0].Url;
+                    }
                     await Console.Out.WriteLineAsync("Found video");
 
 
