@@ -92,10 +92,22 @@ def get_input_time_delta(action: str) -> timedelta:
     return output
 
 def generate_model(path: str = None) -> Sequential:
-    pass
+    model = Sequential()
+    model.add(LSTM(1, return_sequences=True, input_shape=input_shape))
+    model.add(LSTM(150, return_sequences=True))
+    model.add(LSTM(100, return_sequences=True))
+    model.add(LSTM(75))
+    model.add(Dense(35))
+    model.add(Dense(1))
+
+    if path:
+        model.load_weights(path)
+
+    model.compile(optimizer='nadam')
+    return model
 
 def save_model(model: Sequential, name: str) -> None:
-    pass
+    model.save_weights('./' + name + '.hdf5')
 
 def generate_training_data() -> tuple[Tensor, Tensor]:
     pass
