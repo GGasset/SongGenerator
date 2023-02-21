@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow import Tensor
 from tensorflow import keras
 from keras.models import Sequential
-from keras.layers import Dense, LSTM
+from keras.layers import Dense, LSTM, Dropout
 
 audio_byte_count = 32 // 8
 input_shape = (None, audio_byte_count)
@@ -118,6 +118,7 @@ def generate_training_data() -> tuple[Tensor, Tensor]:
     for i, track in enumerate(tracks):
         X.append([])
         Y.append([])
+        print(f'Appending data of track {i} of {len(tracks)} tracks to training data')
         for j in range(len(track) - 1):
             X[i].append(track[j])
             Y[i].append(track[j + 1])
