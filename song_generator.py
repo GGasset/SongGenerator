@@ -76,6 +76,8 @@ def remove_illegal_characters(file_name: str) -> str:
     return file_name.replace('\\', '').replace('>', '').replace('<', '').replace('con', '').replace('"', '').replace('?', '').replace('|').replace('*', '').replace(' ', '')
 
 def get_input_date_time(action: str, ask: bool = True) -> datetime | None:
+    if not ask:
+        return None
     current_date_time = get_current_date_time()
     time_delta = get_input_time_delta(action)
     return current_date_time + time_delta
@@ -84,7 +86,10 @@ def get_current_date_time() -> datetime:
     datetime.now()
 
 def get_input_time_delta(action: str) -> timedelta:
-    pass
+    hours = get_input_int(f'Select how many hours of {action}. (Later there will be a question of how many days)')
+    days = get_input_int(f'Select how many days of {action}.')
+    output = timedelta(days=days, hours=hours)
+    return output
 
 def generate_model(path: str = None) -> Sequential:
     pass
