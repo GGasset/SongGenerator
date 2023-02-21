@@ -99,24 +99,7 @@ namespace MillionSongDatasetDownloader
                     string artistName = parser[ArtistNameCol];
                     string songArtist = RemoveIllegalChars($"{songName} - {artistName}");
 
-                    string url;
-
-                    /*var searchListRequest = youtubeService.Search.List("snippet");
-                    searchListRequest.Q = songArtist;
-                    searchListRequest.MaxResults = 3;
-
-                    var searchListResponse = searchListRequest.ExecuteAsync();
-                    searchListResponse.Wait();
-
-                    var searchListResult = searchListResponse.Result;
-                    foreach (var searchResult in searchListResult.Items)
-                    {
-                        if (searchResult.Id.Kind == "youtube#video")
-                        {
-                            url = "https://www.youtube.com/watch?v=" + searchResult.Id.VideoId;
-                            break;
-                        }
-                    }*/
+                    string url = null;
                     try
                     {
                         var searchListRequest = youtubeService.Search.List("snippet");
