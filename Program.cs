@@ -89,7 +89,8 @@ namespace MillionSongDatasetDownloader
             //converter.FFmpegLibsPath = ffmpegPath;
             for (int i = 0; i < Directory.GetFiles(projectDirectory + $@"Songs\").Length; i++)
             {
-                parser.Read();
+                if (!parser.Read())
+                    break;
             }
             while (parser.Read())
             {
