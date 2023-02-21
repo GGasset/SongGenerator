@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta, datetime
 import numpy as np
 from numpy import ndarray
@@ -7,9 +8,9 @@ from tensorflow import keras
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
 
-audio_chunk_size = 1
-input_shape = (None, audio_chunk_size)
-training_shape = (None, None, audio_chunk_size)
+audio_byte_count = 32 // 8
+input_shape = (None, audio_byte_count)
+training_shape = (None, None, audio_byte_count)
 
 def main():
     while True:
@@ -22,6 +23,7 @@ def main():
 
             model = generate_model(load_path)
             train(model, save_path_file_name)
+            delete_model(model)
         elif get_boolean_input('Do you wish to expand an audio file?'):
             pass
         elif get_boolean_input('Do you wish to exit the program?'):
@@ -32,7 +34,7 @@ def main():
 
 def train(model: Sequential, save_name: str) -> None:
     train_until_time = get_boolean_input('Do you wish to train until a certain time?')
-    training_until_time_time = get_input_date_time('train the network', ask=train_until_time)
+    training_until_time_time = get_input_date_time('training the network', ask=train_until_time)
 
     epoch_prompt = 'For how many epochs do you wish to train the network'
     if train_until_time:
@@ -110,16 +112,42 @@ def save_model(model: Sequential, name: str) -> None:
     model.save_weights('./' + name + '.hdf5')
 
 def generate_training_data() -> tuple[Tensor, Tensor]:
+    tracks = extract_audio_from_directory('./Converted/')
+    X = []
+    Y = []
+    for i, track in enumerate(tracks):
+        X.append([])
+        Y.append([])
+        for j in range(len(track) - 1):
+            X[i].append(track[j])
+            Y[i].append(track[j + 1])
+
+    X = tf.convert_to_tensor(X)
+    Y = tf.convert_to_tensor(Y)
+    desired_shape = (len(X), None, audio_byte_count)
+    X = tf.reshape(X, desired_shape)
+    Y = tf.reshape(Y, desired_shape)
+    return (X, Y)
+
+
+def extract_audio_from_directory(path: str) -> list[bytearray]:
+    out = []
+    for _, folder, files in os.path.walk(path):
+        for file in [f for f in files if f.__contains__('.wav')]:
+            out.append(extract_audio(os.path.join(folder, file)))
+
+# read as binary and transform to decimal
+def extract_audio(file_path: str) -> bytearray:
+    file = open(file_path, mode='r')
+    audio_data = bytearray(file.read())
+    file.close()
+    return audio_data
+
+def generate_track(model: Sequential, input_file_path: str, output_file_path: str) -> None:
     pass
 
-def extract_audio_from_directory(path: str) -> ndarray[Tensor]:
-    pass
-
-def extract_audio(file_path: str) -> Tensor:
-    pass
-
-def generate_track(input_file_path: str, output_file_path: str) -> None:
-    pass
+def delete_model(model: Sequential):
+    del model
 
 if __name__ == '__main__':
     main()
