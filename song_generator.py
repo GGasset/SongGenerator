@@ -102,6 +102,7 @@ def generate_model(path: str = None) -> Sequential:
     model.add(LSTM(150, return_sequences=True))
     model.add(LSTM(100, return_sequences=True))
     model.add(LSTM(75))
+    model.add(Dropout(.2))
     model.add(Dense(35))
     model.add(Dense(audio_unit_byte_count))
 
@@ -114,11 +115,15 @@ def generate_model(path: str = None) -> Sequential:
 def save_model(model: Sequential, name: str) -> None:
     model.save_weights('./' + name + '.hdf5')
 
-def generate_training_data(tracks_to_load: int | None = None) -> tuple[list[list[list[int]]], Tensor, int]:
+# TODO: generate training data for a single song
+def generate_training_data(tracks_to_load: int | None = None) -> tuple[Tensor, Tensor, int]:
     tracks, tracks_to_load = extract_audio_from_directory('./Converted/', tracks_to_load=tracks_to_load)
+    min_track_length = 10E100
     X = []
     Y = []
     for i, track in enumerate(tracks):
+        if len(track) < min_track_length:
+            min_track_length = len(track)
         X.append([])
         Y.append([])
         print(f'Appending data of track {i + 1} of {len(tracks)} tracks to training data')
@@ -134,13 +139,28 @@ def generate_training_data(tracks_to_load: int | None = None) -> tuple[list[list
 
             j_delta_counter += 1
 
-    print('finished generating training data')
+    print('Capping audio length to minimum video length because of rectangularity.')
+    output_shape = (len(tracks), min_track_length - 1, audio_unit_byte_count)
+    out_X = np.ndarray(output_shape)
+    out_Y = np.ndarray(output_shape)
+    for i in range(output_shape[0]):
+        for j in range(output_shape[1]):
+            for k in range(output_shape[2]):
+                out_X = X[i][j][k]
+                out_Y = Y[i][j][k]
+    
+    print('Converted data to tensors')
+    X = tf.convert_to_tensor(out_X)
+    Y = tf.convert_to_tensor(out_Y)
+    del out_X
+    del out_Y
+    print('Finished generating training data')
     return (X, Y, tracks_to_load)
 
 
 def extract_audio_from_directory(path: str, tracks_to_load: int | None = None) -> tuple[list[bytearray], int]:
     if not tracks_to_load:
-        tracks_to_load = get_input_int('How many tracks do you want to load in? (I recommend 15 maximum number of loaded tracks with 16GB of RAM)')
+        tracks_to_load = get_input_int('How many tracks do you want to load in? (It\'s recommended with 16GB of RAM to load 10 tracks as the maximum number)')
     tracks_paths = []
     for folder, _, files in os.walk(path):
         files = files
