@@ -134,6 +134,7 @@ def generate_training_data(tracks_to_load: int | None = None) -> tuple[list[list
 
             j_delta_counter += 1
 
+    print('finished generating training data')
     return (X, Y, tracks_to_load)
 
 
