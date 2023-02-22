@@ -122,11 +122,10 @@ def generate_training_data(tracks_to_load: int | None = None) -> tuple[Tensor, T
         X.append([])
         Y.append([])
         print(f'Appending data of track {i} of {len(tracks) - 1} tracks to training data')
-        #                                                  possible bug
-        for j in range(0, len(track) - audio_unit_byte_count - 1, audio_unit_byte_count):
+        for j in range(0, len(track) - audio_unit_byte_count, audio_unit_byte_count):
             for k in range(audio_unit_byte_count):
                 X[i].append(track[j + k])
-                Y[i].append(track[j + k + audio_unit_byte_count])
+                Y[i].append(track[j + k + audio_unit_byte_count - 1])
 
     X = tf.convert_to_tensor(X)
     Y = tf.convert_to_tensor(Y)
