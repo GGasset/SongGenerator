@@ -8,9 +8,9 @@ from tensorflow import Tensor
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout
 
-audio_byte_count = 32 // 8
-input_shape = (None, audio_byte_count)
-training_shape = (None, None, audio_byte_count)
+audio_unit_byte_count = 32 // 8
+input_shape = (None, audio_unit_byte_count)
+training_shape = (None, None, audio_unit_byte_count)
 
 def main():
     while True:
@@ -98,12 +98,12 @@ def get_input_time_delta(action: str) -> timedelta:
 
 def generate_model(path: str = None) -> Sequential:
     model = Sequential()
-    model.add(LSTM(audio_byte_count, return_sequences=True, input_shape=input_shape))
+    model.add(LSTM(audio_unit_byte_count, return_sequences=True, input_shape=input_shape))
     model.add(LSTM(150, return_sequences=True))
     model.add(LSTM(100, return_sequences=True))
     model.add(LSTM(75))
     model.add(Dense(35))
-    model.add(Dense(audio_byte_count))
+    model.add(Dense(audio_unit_byte_count))
 
     if path:
         model.load_weights(path)
@@ -122,14 +122,15 @@ def generate_training_data(tracks_to_load: int | None = None) -> tuple[Tensor, T
         X.append([])
         Y.append([])
         print(f'Appending data of track {i} of {len(tracks) - 1} tracks to training data')
-        for j in range(0, len(track) - audio_byte_count, audio_byte_count):
-            for k in range(audio_byte_count):
+        #                                                  possible bug
+        for j in range(0, len(track) - audio_unit_byte_count - 1, audio_unit_byte_count):
+            for k in range(audio_unit_byte_count):
                 X[i].append(track[j + k])
-                Y[i].append(track[j + k + audio_byte_count])
+                Y[i].append(track[j + k + audio_unit_byte_count])
 
     X = tf.convert_to_tensor(X)
     Y = tf.convert_to_tensor(Y)
-    desired_shape = (len(X), None, audio_byte_count)
+    desired_shape = (len(X), None, audio_unit_byte_count)
     X = tf.reshape(X, desired_shape)
     Y = tf.reshape(Y, desired_shape)
     return (X, Y, tracks_to_load)
