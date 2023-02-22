@@ -122,7 +122,7 @@ def generate_training_data(tracks_to_load: int | None = None) -> tuple[Tensor, T
         X.append([])
         Y.append([])
         print(f'Appending data of track {i} of {len(tracks) - 1} tracks to training data')
-        for j in range(0, len(track) - audio_unit_byte_count - 1, audio_unit_byte_count):
+        for j in range(0, len(track) - audio_unit_byte_count, audio_unit_byte_count - 1):
             for k in range(audio_unit_byte_count):
                 X[i].append(track[j + k])
                 Y[i].append(track[j + k + audio_unit_byte_count - 1])
@@ -137,7 +137,7 @@ def generate_training_data(tracks_to_load: int | None = None) -> tuple[Tensor, T
 
 def extract_audio_from_directory(path: str, tracks_to_load: int | None = None) -> tuple[list[bytearray], int]:
     if not tracks_to_load:
-        tracks_to_load = get_input_int('How many tracks do you want to load in? (I recommend 100 because of memory errors or in between a range from 50 to 70 if you care about time)')
+        tracks_to_load = get_input_int('How many tracks do you want to load in? (I recommend 50 because of memory errors or in between a range from 20 to 40 if you care about time)')
     tracks_paths = []
     for folder, _, files in os.walk(path):
         files = files
