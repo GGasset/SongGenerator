@@ -122,19 +122,24 @@ def generate_training_data(tracks_to_load: int | None = None) -> tuple[list[list
         X.append([])
         Y.append([])
         print(f'Appending data of track {i + 1} of {len(tracks)} tracks to training data')
+        j_counter = 0
         for j in range(0, len(track) - audio_unit_byte_count * 2, audio_unit_byte_count):
             X[i].append([])
             Y[i].append([])
             for k in range(audio_unit_byte_count):
-                X[i, j].append(track[j + k])
-                Y[i, j].append(track[j + k + audio_unit_byte_count])
+                current_X = track[j + k]
+                current_Y = track[j + k + audio_unit_byte_count]
+                X[i][j_counter].append(current_X)
+                Y[i][j_counter].append(current_Y)
+                
+            j_counter += 1
 
     return (X, Y, tracks_to_load)
 
 
 def extract_audio_from_directory(path: str, tracks_to_load: int | None = None) -> tuple[list[bytearray], int]:
     if not tracks_to_load:
-        tracks_to_load = get_input_int('How many tracks do you want to load in? (I recommend 50 because of memory errors or in between a range from 20 to 40 if you care about time)')
+        tracks_to_load = get_input_int('How many tracks do you want to load in? (I recommend 15 maximum number of loaded tracks with 16GB of RAM')
     tracks_paths = []
     for folder, _, files in os.walk(path):
         files = files
