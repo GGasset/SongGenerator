@@ -114,7 +114,7 @@ def generate_model(path: str = None) -> Sequential:
 def save_model(model: Sequential, name: str) -> None:
     model.save_weights('./' + name + '.hdf5')
 
-def generate_training_data(tracks_to_load: int | None = None) -> tuple[Tensor, Tensor, int]:
+def generate_training_data(tracks_to_load: int | None = None) -> tuple[list[list[list[int]]], Tensor, int]:
     tracks, tracks_to_load = extract_audio_from_directory('./Converted/', tracks_to_load=tracks_to_load)
     X = []
     Y = []
@@ -123,15 +123,12 @@ def generate_training_data(tracks_to_load: int | None = None) -> tuple[Tensor, T
         Y.append([])
         print(f'Appending data of track {i + 1} of {len(tracks)} tracks to training data')
         for j in range(0, len(track) - audio_unit_byte_count * 2, audio_unit_byte_count):
+            X[i].append([])
+            Y[i].append([])
             for k in range(audio_unit_byte_count):
-                X[i].append(track[j + k])
-                Y[i].append(track[j + k + audio_unit_byte_count])
+                X[i, j].append(track[j + k])
+                Y[i, j].append(track[j + k + audio_unit_byte_count])
 
-    X = tf.convert_to_tensor(X)
-    Y = tf.convert_to_tensor(Y)
-    desired_shape = (len(X), None, audio_unit_byte_count)
-    X = tf.reshape(X, desired_shape)
-    Y = tf.reshape(Y, desired_shape)
     return (X, Y, tracks_to_load)
 
 
