@@ -98,12 +98,12 @@ def get_input_time_delta(action: str) -> timedelta:
 
 def generate_model(path: str = None) -> Sequential:
     model = Sequential()
-    model.add(LSTM(1, return_sequences=True, input_shape=input_shape))
+    model.add(LSTM(audio_byte_count, return_sequences=True, input_shape=input_shape))
     model.add(LSTM(150, return_sequences=True))
     model.add(LSTM(100, return_sequences=True))
     model.add(LSTM(75))
     model.add(Dense(35))
-    model.add(Dense(1))
+    model.add(Dense(audio_byte_count))
 
     if path:
         model.load_weights(path)
@@ -122,9 +122,10 @@ def generate_training_data(tracks_to_load: int | None = None) -> tuple[Tensor, T
         X.append([])
         Y.append([])
         print(f'Appending data of track {i} of {len(tracks) - 1} tracks to training data')
-        for j in range(len(track) - 1):
-            X[i].append(track[j])
-            Y[i].append(track[j + 1])
+        for j in range(0, len(track) - 1, audio_byte_count):
+            for k in range(audio_byte_count):
+                X[i].append(track[j + k])
+                Y[i].append(track[j + k + 1 * audio_byte_count])
 
     X = tf.convert_to_tensor(X)
     Y = tf.convert_to_tensor(Y)
@@ -136,7 +137,7 @@ def generate_training_data(tracks_to_load: int | None = None) -> tuple[Tensor, T
 
 def extract_audio_from_directory(path: str, tracks_to_load: int | None = None) -> tuple[list[bytearray], int]:
     if not tracks_to_load:
-        tracks_to_load = get_input_int('How many tracks do you want to load in? (I recommend 1000 because of memory errors or in between a range from 300 to 600 if you care about time)')
+        tracks_to_load = get_input_int('How many tracks do you want to load in? (I recommend 100 because of memory errors or in between a range from 50 to 70 if you care about time)')
     tracks_paths = []
     for folder, _, files in os.walk(path):
         files = files
