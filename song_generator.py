@@ -1,10 +1,10 @@
 import os
+from random import randint
 from datetime import timedelta, datetime
 import numpy as np
 from numpy import ndarray
 import tensorflow as tf
 from tensorflow import Tensor
-from tensorflow import keras
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout
 
@@ -132,16 +132,25 @@ def generate_training_data() -> tuple[Tensor, Tensor]:
 
 
 def extract_audio_from_directory(path: str) -> list[bytearray]:
-    out = []
-    for _, folder, files in os.walk(path):
+    tracks_to_load = get_input_int('How many tracks do you want to load in? (I recommend 1000 because of memory errors or in between a range from 300 to 600 if you care about time)')
+    tracks_paths = []
+    for folder, _, files in os.walk(path):
+        files = files
         filtered = [f for f in files if f.__contains__('.wav')]
-        for i, file in enumerate(filtered):
-            print(f'Read {i} out of {len(filtered) - 1}')
-            out.append(extract_audio(os.path.join(folder, file)))
+        for file in filtered:
+            file_path = os.path.join(folder, file)
+            tracks_paths.append(file_path)
+
+    output = []
+    for i in range(tracks_to_load):
+        track_i = randint(0, len(tracks_paths) - 1)
+        output.append(extract_audio(tracks_paths[track_i]))
+        tracks_paths.remove(tracks_paths[track_i])
+        print(f'Extracted audio of {i + 1} tracks of {tracks_to_load}')
 
 # read as binary and transform to decimal
 def extract_audio(file_path: str) -> bytearray:
-    file = open(file_path, mode='r')
+    file = open(file_path, mode='rb')
     audio_data = bytearray(file.read())
     file.close()
     return audio_data
