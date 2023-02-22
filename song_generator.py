@@ -28,9 +28,6 @@ def main():
             pass
         elif get_boolean_input('Do you wish to exit the program?'):
             quit(0)
-            
-
-
 
 def train(model: Sequential, save_name: str) -> None:
     train_until_time = get_boolean_input('Do you wish to train until a certain time?')
@@ -41,9 +38,13 @@ def train(model: Sequential, save_name: str) -> None:
         epoch_prompt += ' iteratively until the desired time'
     epoch_prompt += '?'
     epochs = get_input_int(epoch_prompt)
-    X, Y = generate_training_data()
     trained_once = False
+    get_data_each_fit = get_boolean_input('Do you want to get new data each time the model fits for the selected epochs?')
+    X, Y = (None, None)
+    tracks_to_load = None
     while get_current_date_time() < training_until_time_time or not trained_once:
+        if not trained_once or get_data_each_fit:
+            X, Y, tracks_to_load = generate_training_data(tracks_to_load=tracks_to_load)
         model.fit(x=X, y=Y, batch_size=8, epochs=epochs, use_multiprocessing=True)
         save_model(model, save_name)
         trained_once = True
@@ -59,12 +60,14 @@ def get_boolean_input(prompt: str) -> bool:
 
     return answer in positive_options
 
-def get_input_int(prompt: str) -> int:
+def get_input_int(prompt: str, return_abs: bool = True) -> int:
     while True:
         print(prompt)
-        print('Accepted options are integers.')
+        print('Accepted options are integers. If the integer is negative, it will be converted to positive')
         try:
             answer = int(input())
+            if return_abs:
+                answer = abs(answer)
             return answer
         except:
             pass
@@ -111,8 +114,8 @@ def generate_model(path: str = None) -> Sequential:
 def save_model(model: Sequential, name: str) -> None:
     model.save_weights('./' + name + '.hdf5')
 
-def generate_training_data() -> tuple[Tensor, Tensor]:
-    tracks = extract_audio_from_directory('./Converted/')
+def generate_training_data(tracks_to_load: int | None = None) -> tuple[Tensor, Tensor, int]:
+    tracks, tracks_to_load = extract_audio_from_directory('./Converted/', tracks_to_load=tracks_to_load)
     X = []
     Y = []
     for i, track in enumerate(tracks):
@@ -128,11 +131,12 @@ def generate_training_data() -> tuple[Tensor, Tensor]:
     desired_shape = (len(X), None, audio_byte_count)
     X = tf.reshape(X, desired_shape)
     Y = tf.reshape(Y, desired_shape)
-    return (X, Y)
+    return (X, Y, tracks_to_load)
 
 
-def extract_audio_from_directory(path: str) -> list[bytearray]:
-    tracks_to_load = get_input_int('How many tracks do you want to load in? (I recommend 1000 because of memory errors or in between a range from 300 to 600 if you care about time)')
+def extract_audio_from_directory(path: str, tracks_to_load: int | None = None) -> tuple[list[bytearray], int]:
+    if not tracks_to_load:
+        tracks_to_load = get_input_int('How many tracks do you want to load in? (I recommend 1000 because of memory errors or in between a range from 300 to 600 if you care about time)')
     tracks_paths = []
     for folder, _, files in os.walk(path):
         files = files
@@ -147,6 +151,7 @@ def extract_audio_from_directory(path: str) -> list[bytearray]:
         output.append(extract_audio(tracks_paths[track_i]))
         tracks_paths.remove(tracks_paths[track_i])
         print(f'Extracted audio of {i + 1} tracks of {tracks_to_load}')
+    return (output, tracks_to_load)
 
 # read as binary and transform to decimal
 def extract_audio(file_path: str) -> bytearray:
