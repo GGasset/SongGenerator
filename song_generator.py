@@ -5,8 +5,9 @@ import numpy as np
 from numpy import ndarray
 import tensorflow as tf
 from tensorflow import Tensor
+import keras
 from keras.models import Sequential
-from keras.layers import Dense, LSTM, Dropout
+from keras.layers import Dense, LSTM, Dropout, Rescaling
 
 audio_unit_byte_count = 32 // 8
 input_shape = (None, audio_unit_byte_count)
@@ -103,13 +104,15 @@ def generate_model(path: str = None) -> Sequential:
     model.add(LSTM(100, return_sequences=True))
     model.add(LSTM(75))
     model.add(Dropout(.2))
-    model.add(Dense(35))
-    model.add(Dense(audio_unit_byte_count))
+    model.add(Dense(35, activation='sigmoid'))
+    model.add(Dense(audio_unit_byte_count, activation='sigmoid'))
+    model.add(Rescaling(255.))
+
 
     if path:
         model.load_weights(path)
 
-    model.compile(optimizer='nadam')
+    model.compile(optimizer='nadam', loss=tf.keras.losses.MeanSquaredError())
     return model
 
 def save_model(model: Sequential, name: str) -> None:
@@ -140,14 +143,14 @@ def generate_training_data(tracks_to_load: int | None = None) -> tuple[Tensor, T
             j_delta_counter += 1
 
     print('Capping audio length to minimum video length because of rectangularity.')
-    output_shape = (len(tracks), min_track_length - 1, audio_unit_byte_count)
+    output_shape = (len(tracks), (min_track_length - audio_unit_byte_count * 2) // audio_unit_byte_count, audio_unit_byte_count)
     out_X = np.ndarray(output_shape)
     out_Y = np.ndarray(output_shape)
     for i in range(output_shape[0]):
         for j in range(output_shape[1]):
             for k in range(output_shape[2]):
-                out_X = X[i][j][k]
-                out_Y = Y[i][j][k]
+                out_X[i][j][k] = X[i][j][k]
+                out_Y[i][j][k] = Y[i][j][k]
     
     print('Converted data to tensors')
     X = tf.convert_to_tensor(out_X)
