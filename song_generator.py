@@ -8,6 +8,7 @@ from tensorflow import Tensor
 import keras
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout, Rescaling
+from scipy.io import wavfile
 
 audio_unit_byte_count = 32 // 8
 input_shape = (None, audio_unit_byte_count)
@@ -46,6 +47,8 @@ def train(model: Sequential, save_name: str) -> None:
     while get_current_date_time() < training_until_time_time or not trained_once:
         if not trained_once or get_data_each_fit:
             X, Y, tracks_to_load = generate_training_data(tracks_to_load=tracks_to_load)
+
+        print('Fitting model...')
         model.fit(x=X, y=Y, batch_size=8, epochs=epochs, use_multiprocessing=True)
         save_model(model, save_name)
         trained_once = True
@@ -144,17 +147,17 @@ def generate_training_data(tracks_to_load: int | None = None) -> tuple[Tensor, T
 
     print('Capping audio length to minimum video length because of rectangularity.')
     output_shape = (len(tracks), (min_track_length - audio_unit_byte_count * 2) // audio_unit_byte_count, audio_unit_byte_count)
-    out_X = np.ndarray(output_shape)
-    out_Y = np.ndarray(output_shape)
+    out_X = np.ndarray(output_shape, dtype='uint8')
+    out_Y = np.ndarray(output_shape, dtype='uint8')
     for i in range(output_shape[0]):
         for j in range(output_shape[1]):
             for k in range(output_shape[2]):
                 out_X[i][j][k] = X[i][j][k]
                 out_Y[i][j][k] = Y[i][j][k]
     
-    print('Converted data to tensors')
-    X = tf.convert_to_tensor(out_X)
-    Y = tf.convert_to_tensor(out_Y)
+    print('Converting data to tensors')
+    X = tf.convert_to_tensor(out_X, dtype='uint8')
+    Y = tf.convert_to_tensor(out_Y, dtype='uint8')
     del out_X
     del out_Y
     print('Finished generating training data')
@@ -175,13 +178,16 @@ def extract_audio_from_directory(path: str, tracks_to_load: int | None = None) -
     output = []
     for i in range(tracks_to_load):
         track_i = randint(0, len(tracks_paths) - 1)
-        output.append(extract_audio(tracks_paths[track_i]))
+        output.append(extract_audio(tracks_paths[track_i], False))
         tracks_paths.remove(tracks_paths[track_i])
         print(f'Extracted audio of {i + 1} tracks of {tracks_to_load}')
     return (output, tracks_to_load)
 
 # read as binary and transform to decimal
-def extract_audio(file_path: str) -> bytearray:
+def extract_audio(file_path: str, as_numpy: bool = True) -> bytearray:
+    if as_numpy:
+         = wavfile.read(file_path)
+
     file = open(file_path, mode='rb')
     audio_data = bytearray(file.read())
     file.close()
